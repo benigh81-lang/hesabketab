@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0d9488" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="description" content="حساب‌یار - مدیریت حساب‌وکتاب شخصی کاملاً آفلاین" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icon-192.png" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <title>حساب‌یار</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <!-- Lock Screen -->
+  <div id="lock-screen">
+    <div class="lock-title">🔒 حساب‌یار</div>
+    <p class="text-muted">رمز عبور را وارد کنید</p>
+    <div class="pin-display" id="pin-display">
+      <div class="pin-dot"></div>
+      <div class="pin-dot"></div>
+      <div class="pin-dot"></div>
+      <div class="pin-dot"></div>
+    </div>
+    <div class="pin-pad" id="pin-pad">
+      <button class="pin-btn" data-num="1">۱</button>
+      <button class="pin-btn" data-num="2">۲</button>
+      <button class="pin-btn" data-num="3">۳</button>
+      <button class="pin-btn" data-num="4">۴</button>
+      <button class="pin-btn" data-num="5">۵</button>
+      <button class="pin-btn" data-num="6">۶</button>
+      <button class="pin-btn" data-num="7">۷</button>
+      <button class="pin-btn" data-num="8">۸</button>
+      <button class="pin-btn" data-num="9">۹</button>
+      <button class="pin-btn" data-num="clear">⌫</button>
+      <button class="pin-btn" data-num="0">۰</button>
+      <button class="pin-btn" data-num="ok">✓</button>
+    </div>
+  </div>
+
+  <div id="app">
+    <!-- Header -->
+    <header class="header">
+      <h1>💰 حساب‌یار</h1>
+      <div class="header-actions">
+        <button class="icon-btn" id="btn-theme" title="تغییر تم">🌙</button>
+        <button class="icon-btn" id="btn-search" title="جستجو">🔍</button>
+      </div>
+    </header>
+
+    <!-- Dashboard Page -->
+    <div id="page-dashboard" class="page active">
+      <div class="card balance-card">
+        <div class="card-title">موجودی کل</div>
+        <div class="balance-amount" id="total-balance">۰ تومان</div>
+        <div class="balance-sub">
+          <div class="balance-sub-item">
+            <div class="label">درآمد امروز</div>
+            <div class="value" id="today-income">۰</div>
+          </div>
+          <div class="balance-sub-item">
+            <div class="label">هزینه امروز</div>
+            <div class="value" id="today-expense">۰</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card income">
+          <div class="label">درآمد ماه</div>
+          <div class="value" id="month-income">۰</div>
+        </div>
+        <div class="stat-card expense">
+          <div class="label">هزینه ماه</div>
+          <div class="value" id="month-expense">۰</div>
+        </div>
+      </div>
+
+      <!-- Budget Progress -->
+      <div class="card" id="budget-card" style="display:none;">
+        <div class="flex-between">
+          <div class="card-title">بودجه ماهانه</div>
+          <span id="budget-percent" class="text-muted" style="font-size:0.85rem;"></span>
+        </div>
+        <div class="budget-bar">
+          <div class="budget-fill" id="budget-fill" style="width:0%"></div>
+        </div>
+        <div class="flex-between mt-2" style="font-size:0.85rem;">
+          <span id="budget-spent">۰</span>
+          <span id="budget-limit" class="text-muted">از ۰</span>
+        </div>
+      </div>
+
+      <div class="section-header">
+        <h2>آخرین تراکنش‌ها</h2>
+        <button class="chip" onclick="App.showPage('transactions')">همه</button>
+      </div>
+      <div class="card" id="recent-transactions">
+        <div class="empty-state">
+          <div class="icon">📝</div>
+          <p>هنوز تراکنشی ثبت نشده</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transactions Page -->
+    <div id="page-transactions" class="page">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" class="form-control" id="search-input" placeholder="جستجو در عنوان یا توضیحات..." />
+      </div>
+      <div class="filter-bar" id="filter-bar">
+        <button class="chip active" data-filter="all">همه</button>
+        <button class="chip" data-filter="income">درآمد</button>
+        <button class="chip" data-filter="expense">هزینه</button>
+      </div>
+      <div id="transactions-list" class="card">
+        <div class="empty-state">
+          <div class="icon">📂</div>
+          <p>تراکنشی یافت نشد</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add / Edit Page -->
+    <div id="page-add" class="page">
+      <div class="type-toggle">
+        <button class="type-btn expense active" data-type="expense">هزینه</button>
+        <button class="type-btn income" data-type="income">درآمد</button>
+      </div>
+
+      <div class="form-group amount-input-wrap">
+        <input type="text" class="form-control" id="tx-amount" inputmode="numeric" placeholder="۰" autocomplete="off" />
+        <span class="amount-unit" id="amount-unit">تومان</span>
+      </div>
+
+      <div class="form-group">
+        <label>عنوان</label>
+        <input type="text" class="form-control" id="tx-title" placeholder="مثلاً خرید نان" />
+      </div>
+
+      <div class="form-group">
+        <label>دسته‌بندی</label>
+        <div class="chips" id="category-chips"></div>
+        <button class="chip mt-2" id="btn-add-category" style="border-style:dashed;">＋ دسته جدید</button>
+      </div>
+
+      <div class="form-group">
+        <label>تاریخ</label>
+        <input type="date" class="form-control" id="tx-date" />
+        <div class="text-muted mt-2" style="font-size:0.85rem;" id="shamsi-date-preview"></div>
+      </div>
+
+      <div class="form-group">
+        <label>توضیحات (اختیاری)</label>
+        <textarea class="form-control" id="tx-note" placeholder="یادداشت..."></textarea>
+      </div>
+
+      <div class="form-group" id="recurring-group">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <input type="checkbox" id="tx-recurring" style="width:18px;height:18px;" />
+          تراکنش تکرارشونده ماهانه
+        </label>
+      </div>
+
+      <button class="btn btn-primary" id="btn-save-tx">ذخیره تراکنش</button>
+      <button class="btn btn-outline mt-2" id="btn-cancel-edit" style="display:none;">انصراف از ویرایش</button>
+    </div>
+
+    <!-- Reports Page -->
+    <div id="page-reports" class="page">
+      <div class="filter-bar" id="report-period">
+        <button class="chip active" data-period="month">این ماه</button>
+        <button class="chip" data-period="week">این هفته</button>
+        <button class="chip" data-period="day">امروز</button>
+        <button class="chip" data-period="custom">بازه دلخواه</button>
+      </div>
+
+      <div id="custom-range" class="card" style="display:none;">
+        <div class="form-group">
+          <label>از تاریخ</label>
+          <input type="date" class="form-control" id="range-from" />
+        </div>
+        <div class="form-group">
+          <label>تا تاریخ</label>
+          <input type="date" class="form-control" id="range-to" />
+        </div>
+        <button class="btn btn-primary" id="btn-apply-range">اعمال</button>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card income">
+          <div class="label">کل درآمد</div>
+          <div class="value" id="report-income">۰</div>
+        </div>
+        <div class="stat-card expense">
+          <div class="label">کل هزینه</div>
+          <div class="value" id="report-expense">۰</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">مقایسه درآمد و هزینه</div>
+        <div class="chart-container">
+          <canvas id="chart-compare"></canvas>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">توزیع هزینه‌ها</div>
+        <div class="chart-container">
+          <canvas id="chart-pie"></canvas>
+        </div>
+        <div id="top-category" class="mt-2 text-muted" style="font-size:0.9rem; text-align:center;"></div>
+      </div>
+    </div>
+
+    <!-- Settings Page -->
+    <div id="page-settings" class="page">
+      <div class="card">
+        <ul class="settings-list">
+          <li class="settings-item" id="setting-currency">
+            <div class="left">
+              <div class="icon">💱</div>
+              <div>
+                <div>واحد پول</div>
+                <div class="text-muted" style="font-size:0.8rem;" id="currency-label">تومان</div>
+              </div>
+            </div>
+            <span>›</span>
+          </li>
+          <li class="settings-item" id="setting-budget">
+            <div class="left">
+              <div class="icon">📊</div>
+              <div>
+                <div>بودجه ماهانه</div>
+                <div class="text-muted" style="font-size:0.8rem;" id="budget-label">تعیین نشده</div>
+              </div>
+            </div>
+            <span>›</span>
+          </li>
+          <li class="settings-item" id="setting-password">
+            <div class="left">
+              <div class="icon">🔒</div>
+              <div>
+                <div>رمز عبور / قفل</div>
+                <div class="text-muted" style="font-size:0.8rem;" id="password-label">غیرفعال</div>
+              </div>
+            </div>
+            <span>›</span>
+          </li>
+          <li class="settings-item" id="setting-export">
+            <div class="left">
+              <div class="icon">📤</div>
+              <div>خروجی Excel / CSV</div>
+            </div>
+            <span>›</span>
+          </li>
+          <li class="settings-item" id="setting-backup">
+            <div class="left">
+              <div class="icon">💾</div>
+              <div>پشتیبان‌گیری</div>
+            </div>
+            <span>›</span>
+          </li>
+          <li class="settings-item" id="setting-restore">
+            <div class="left">
+              <div class="icon">📥</div>
+              <div>بازیابی اطلاعات</div>
+            </div>
+            <span>›</span>
+          </li>
+          <li class="settings-item" id="setting-categories">
+            <div class="left">
+              <div class="icon">🏷️</div>
+              <div>مدیریت دسته‌بندی‌ها</div>
+            </div>
+            <span>›</span>
+          </li>
+          <li class="settings-item" id="setting-clear">
+            <div class="left">
+              <div class="icon">🗑️</div>
+              <div class="text-danger">پاک کردن همه داده‌ها</div>
+            </div>
+            <span>›</span>
+          </li>
+        </ul>
+      </div>
+      <div class="text-center text-muted mt-3" style="font-size:0.8rem;">
+        حساب‌یار نسخه ۱.۰<br>
+        کاملاً آفلاین • داده‌ها فقط روی گوشی شما
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Nav -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" data-page="dashboard">
+      <span class="nav-icon">🏠</span>
+      <span>خانه</span>
+    </button>
+    <button class="nav-item" data-page="transactions">
+      <span class="nav-icon">📋</span>
+      <span>تراکنش‌ها</span>
+    </button>
+    <button class="nav-item add-btn" data-page="add">
+      <div class="nav-icon-wrap">＋</div>
+    </button>
+    <button class="nav-item" data-page="reports">
+      <span class="nav-icon">📈</span>
+      <span>گزارش</span>
+    </button>
+    <button class="nav-item" data-page="settings">
+      <span class="nav-icon">⚙️</span>
+      <span>تنظیمات</span>
+    </button>
+  </nav>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Modal for various actions -->
+  <div class="modal-overlay" id="modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modal-title">عنوان</h3>
+        <button class="icon-btn" id="modal-close">✕</button>
+      </div>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
